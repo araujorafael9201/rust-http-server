@@ -4,12 +4,18 @@ use std::{
     net::{TcpListener, TcpStream},
 };
 
+use rust_http_server::ThreadPool;
+
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:9999").unwrap();
+    let pool = ThreadPool::new(5);
 
     for stream in listener.incoming() {
         let stream = stream.unwrap();
-        handle_connection(stream);
+
+        pool.execute(|| {
+            handle_connection(stream);
+        })
     }
 }
 
