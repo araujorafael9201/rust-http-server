@@ -15,16 +15,15 @@ fn main() {
 
 fn handle_connection(mut stream: TcpStream) {
     let buf_reader = BufReader::new(&mut stream);
-    let http_request: Vec<_> = buf_reader
-        .lines()
-        .map(|res| res.unwrap())
-        .take_while(|line| !line.is_empty())
-        .collect();
+    let request_line = buf_reader.lines().next().unwrap().unwrap();
 
-    println!("{:#?}", http_request);
+    let (response_status, file_path) = if request_line == "GET / HTTP/1.1" {
+        ("HTTP/1.1 200 OK", "src/pages/index.html")
+    } else {
+        ("HTTP/1.1 404 NOT FOUND", "src/pages/404.html")
+    };
 
-    let response_status = "HTTP/1.1 200 OK";
-    let response_content = fs::read_to_string("src/pages/index.html").unwrap();
+    let response_content = fs::read_to_string(file_path).unwrap();
     let response_content_len = response_content.len();
 
     let response = format!(
